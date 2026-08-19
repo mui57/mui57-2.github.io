@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>エイム練習ゲーム (OKIAIMX風)</title>
+    <title>反射神経測定（5回平均）</title>
     <style>
-        /* ===== スタイリング ===== */
+        /* ===== デザイン ===== */
         * {
             margin: 0;
             padding: 0;
@@ -14,98 +14,131 @@
         }
         body {
             background: #0b0e14;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: white;
         }
-        #gameWrapper {
+        #app {
             background: #1a1f2b;
-            padding: 25px 30px 30px 30px;
-            border-radius: 20px;
+            padding: 30px 35px 35px 35px;
+            border-radius: 24px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.7);
             text-align: center;
             border: 1px solid #2f3747;
+            max-width: 600px;
+            width: 100%;
         }
         h1 {
-            font-size: 28px;
-            letter-spacing: 3px;
+            font-size: 30px;
+            letter-spacing: 2px;
             color: #b7c9e2;
-            text-shadow: 0 2px 0 #0a0c10;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
-        .info-panel {
+        .sub {
+            color: #8896b0;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        /* メイン表示エリア */
+        #displayArea {
+            background: #0f131c;
+            border-radius: 16px;
+            padding: 40px 20px;
+            margin-bottom: 20px;
+            border: 2px solid #2a3242;
+            transition: background-color 0.1s;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #displayArea .status {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        #displayArea .detail {
+            font-size: 18px;
+            color: #b0c0d8;
+            margin-top: 6px;
+        }
+        /* 状態に合わせた色（JSで切り替え） */
+        #displayArea.waiting {
+            background: #1e2636;
+            border-color: #3a455a;
+        }
+        #displayArea.ready {
+            background: #4a1a1a;
+            border-color: #aa3333;
+        }
+        #displayArea.go {
+            background: #1a4a2a;
+            border-color: #33aa55;
+        }
+        #displayArea.result {
+            background: #1a1f2b;
+            border-color: #3b5998;
+        }
+
+        /* 回数・結果リスト */
+        .info-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             background: #0f131c;
-            padding: 10px 20px;
+            padding: 10px 18px;
             border-radius: 40px;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
             font-weight: bold;
             border: 1px solid #2a3242;
         }
-        .info-panel span {
+        .info-row span {
             color: #ffd966;
-            font-size: 22px;
-            min-width: 60px;
+            font-size: 20px;
         }
-        .mode-selector {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            justify-content: center;
-        }
-        .mode-btn {
-            background: #252d3d;
-            border: none;
-            color: #8896b0;
-            padding: 6px 18px;
-            border-radius: 30px;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            transition: 0.2s;
-            border: 1px solid transparent;
-        }
-        .mode-btn:hover {
-            background: #2f3a4e;
-            color: white;
-        }
-        .mode-btn.active {
-            background: #3b5998;
-            color: white;
-            border-color: #5f7fc7;
-            box-shadow: 0 0 10px #3b599880;
-        }
-        canvas {
-            display: block;
-            margin: 0 auto;
-            background: #141a24;
+        #resultList {
+            text-align: left;
+            background: #0f131c;
             border-radius: 12px;
-            border: 2px solid #2e384b;
-            cursor: crosshair;
-            width: 100%;
-            max-width: 800px;
-            height: auto;
-            aspect-ratio: 800 / 450;
+            padding: 12px 18px;
+            margin: 10px 0 16px 0;
+            border: 1px solid #2a3242;
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 15px;
+            color: #b7c9e2;
+        }
+        #resultList .entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid #1e2636;
+        }
+        #resultList .entry:last-child {
+            border-bottom: none;
+        }
+        #averageDisplay {
+            font-size: 22px;
+            font-weight: bold;
+            color: #7fc7ff;
+            margin: 10px 0 16px 0;
         }
         .action-btn {
-            margin-top: 18px;
             background: #2f8f4b;
             border: none;
             color: white;
             font-size: 22px;
             font-weight: bold;
-            padding: 12px 40px;
+            padding: 14px 40px;
             border-radius: 60px;
             cursor: pointer;
             transition: 0.2s;
             letter-spacing: 2px;
             box-shadow: 0 5px 0 #1a4a2a;
             border-bottom: 2px solid #4cdb7a;
+            width: 100%;
         }
         .action-btn:hover {
             background: #3ba85a;
@@ -115,353 +148,332 @@
             transform: translateY(4px);
             box-shadow: 0 1px 0 #1a4a2a;
         }
+        .action-btn:disabled {
+            opacity: 0.5;
+            transform: none;
+            box-shadow: 0 5px 0 #1a4a2a;
+            cursor: not-allowed;
+        }
         #message {
-            margin-top: 10px;
-            height: 24px;
+            margin-top: 12px;
             color: #ff8080;
             font-weight: bold;
+            min-height: 24px;
         }
-        @media (max-width: 600px) {
-            #gameWrapper { padding: 15px; }
-            h1 { font-size: 20px; }
-            .info-panel span { font-size: 18px; }
+        @media (max-width: 500px) {
+            #app { padding: 20px; }
+            #displayArea .status { font-size: 22px; }
         }
     </style>
 </head>
 <body>
-    <div id="gameWrapper">
-        <h1>🎯 エイム練習</h1>
+<div id="app">
+    <h1>⚡ 反射神経テスト</h1>
+    <div class="sub">5回の平均反応時間を測定</div>
 
-        <!-- スコア＆タイマー -->
-        <div class="info-panel">
-            <div>🎯 スコア <span id="scoreDisplay">0</span></div>
-            <div>⏱ 残り <span id="timerDisplay">30</span>s</div>
-        </div>
-
-        <!-- 難易度ボタン -->
-        <div class="mode-selector">
-            <button class="mode-btn active" data-mode="easy">🍀 かんたん</button>
-            <button class="mode-btn" data-mode="normal">⚡ ふつう</button>
-            <button class="mode-btn" data-mode="hard">🔥 むずかしい</button>
-        </div>
-
-        <!-- ゲーム描画エリア -->
-        <canvas id="gameCanvas" width="800" height="450"></canvas>
-
-        <!-- スタート / リスタート -->
-        <button class="action-btn" id="startBtn">▶ ゲームスタート</button>
-        <div id="message">👆 敵が消える前にクリック！</div>
+    <!-- 表示エリア -->
+    <div id="displayArea" class="waiting">
+        <div class="status" id="statusText">準備完了</div>
+        <div class="detail" id="detailText">スタートを押してください</div>
     </div>
 
-    <script>
-        // ============================================================
-        //  JavaScript: ゲームのすべてのロジック
-        // ============================================================
+    <!-- 回数・経過 -->
+    <div class="info-row">
+        <div>📊 試行 <span id="trialCount">0</span> / 5</div>
+        <div>⏱ 最後の結果 <span id="lastResult">--</span> ms</div>
+    </div>
 
-        // --- 要素取得 ---
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreSpan = document.getElementById('scoreDisplay');
-        const timerSpan = document.getElementById('timerDisplay');
-        const startBtn = document.getElementById('startBtn');
-        const messageEl = document.getElementById('message');
-        const modeBtns = document.querySelectorAll('.mode-btn');
+    <!-- 結果リスト -->
+    <div id="resultList">
+        <div style="color:#8896b0; text-align:center; padding:6px;">結果がここに表示されます</div>
+    </div>
 
-        // --- ゲーム設定 (モード別) ---
-        const MODES = {
-            easy:   { spawnInterval: 1200, visibleTime: 1200, gameTime: 30, targetRadius: 28, label: 'かんたん' },
-            normal: { spawnInterval: 900,  visibleTime: 900,  gameTime: 25, targetRadius: 22, label: 'ふつう' },
-            hard:   { spawnInterval: 600,  visibleTime: 600,  gameTime: 20, targetRadius: 16, label: 'むずかしい' }
-        };
-        let currentMode = 'easy';
+    <!-- 平均 -->
+    <div id="averageDisplay">平均: -- ms</div>
 
-        // --- ゲーム状態 ---
-        let game = {
-            status: 'idle',        // 'idle' , 'playing' , 'gameover'
-            score: 0,
-            timeLeft: 30,
-            timerInterval: null,
-            spawnTimeout: null,
-            // ターゲット
-            target: {
-                x: 0,
-                y: 0,
-                radius: 28,
-                isVisible: false,
-                disappearTimer: null
-            }
-        };
+    <!-- スタートボタン -->
+    <button class="action-btn" id="startBtn">▶ スタート</button>
+    <div id="message"></div>
+</div>
 
-        // --- 補助関数 ---
-        function getConfig() {
-            return MODES[currentMode];
+<script>
+    // ============================================================
+    //  JavaScript: 反射神経測定の全ロジック
+    // ============================================================
+
+    // --- DOM 参照 ---
+    const displayArea = document.getElementById('displayArea');
+    const statusText = document.getElementById('statusText');
+    const detailText = document.getElementById('detailText');
+    const trialCountSpan = document.getElementById('trialCount');
+    const lastResultSpan = document.getElementById('lastResult');
+    const resultListEl = document.getElementById('resultList');
+    const averageDisplay = document.getElementById('averageDisplay');
+    const startBtn = document.getElementById('startBtn');
+    const messageEl = document.getElementById('message');
+
+    // --- ゲーム状態 ---
+    const state = {
+        // 測定データ
+        results: [],           // 各回の反応時間 (ms)
+        currentTrial: 0,       // 0〜4 (5回)
+        // 状態フラグ
+        isWaiting: false,      // スタート待機 or 再試行待機
+        isReady: false,        // 赤（準備中）クリック禁止
+        isGo: false,           // 緑（クリック可）
+        isFinished: false,     // 5回終了
+        // タイマー関連
+        timerId: null,
+        startTime: 0,          // 緑になった瞬間の時刻 (performance.now)
+        // ペナルティ（ミス回数）
+        mistakes: 0,
+    };
+
+    // --- 補助関数 ---
+    function updateUI() {
+        trialCountSpan.textContent = state.results.length;
+        if (state.results.length > 0) {
+            lastResultSpan.textContent = state.results[state.results.length - 1];
+        } else {
+            lastResultSpan.textContent = '--';
         }
+        // 結果リストの更新
+        renderResultList();
+        // 平均の更新
+        updateAverage();
+    }
 
-        // --- ターゲットを出現させる ---
-        function spawnTarget() {
-            if (game.status !== 'playing') return;
+    function renderResultList() {
+        if (state.results.length === 0) {
+            resultListEl.innerHTML = `<div style="color:#8896b0; text-align:center; padding:6px;">結果がここに表示されます</div>`;
+            return;
+        }
+        let html = '';
+        state.results.forEach((ms, index) => {
+            const label = index + 1;
+            html += `<div class="entry"><span>#${label}</span><span>${ms} ms</span></div>`;
+        });
+        resultListEl.innerHTML = html;
+        // スクロールを最新に
+        resultListEl.scrollTop = resultListEl.scrollHeight;
+    }
 
-            const cfg = getConfig();
-            const t = game.target;
+    function updateAverage() {
+        if (state.results.length === 0) {
+            averageDisplay.textContent = '平均: -- ms';
+            return;
+        }
+        const sum = state.results.reduce((a, b) => a + b, 0);
+        const avg = Math.round(sum / state.results.length);
+        averageDisplay.textContent = `平均: ${avg} ms`;
+    }
 
-            // 既に表示中なら一旦クリア
-            if (t.disappearTimer) {
-                clearTimeout(t.disappearTimer);
-                t.disappearTimer = null;
+    // --- 状態のリセット（再スタート用） ---
+    function resetGame() {
+        // タイマーをクリア
+        if (state.timerId) {
+            clearTimeout(state.timerId);
+            state.timerId = null;
+        }
+        state.results = [];
+        state.currentTrial = 0;
+        state.mistakes = 0;
+        state.isFinished = false;
+        state.isWaiting = false;
+        state.isReady = false;
+        state.isGo = false;
+        setDisplayState('waiting', '準備完了', 'スタートを押してください');
+        startBtn.textContent = '▶ スタート';
+        startBtn.disabled = false;
+        messageEl.textContent = '';
+        updateUI();
+    }
+
+    // --- 表示エリアの状態切り替え ---
+    function setDisplayState(mode, status, detail = '') {
+        // mode: 'waiting', 'ready', 'go', 'result'
+        displayArea.className = mode;
+        statusText.textContent = status;
+        detailText.textContent = detail;
+    }
+
+    // --- ミス（早押し）処理 ---
+    function handleMistake() {
+        if (state.isFinished) return;
+        state.mistakes++;
+        messageEl.textContent = `⚠️ まだ赤です！ クリックは緑になってから (ミス ${state.mistakes}回)`;
+        // ミスしたらその回は無効にして再試行（同じ試行回数をもう一度）
+        // 再試行のために ready 状態に戻す（もう一度同じ待機時間からやり直し）
+        if (state.timerId) {
+            clearTimeout(state.timerId);
+            state.timerId = null;
+        }
+        state.isReady = false;
+        state.isGo = false;
+        // 少し待ってから再スタート（準備中→赤）
+        setDisplayState('waiting', '再試行', 'もう一度待機します...');
+        startBtn.disabled = true;
+        setTimeout(() => {
+            if (!state.isFinished && state.results.length < 5) {
+                startReadySequence();
+            }
+        }, 800);
+    }
+
+    // --- 準備シーケンス（赤→緑） ---
+    function startReadySequence() {
+        if (state.isFinished) return;
+        // 赤表示（準備中）
+        state.isReady = true;
+        state.isGo = false;
+        setDisplayState('ready', '🔴 準備中...', '緑になるのを待ってください');
+        startBtn.disabled = true;
+        messageEl.textContent = '';
+
+        // ランダムな待機時間 (1〜5秒)
+        const delay = Math.random() * 4000 + 1000; // 1000〜5000ms
+        state.timerId = setTimeout(() => {
+            // 緑に切り替え
+            state.isReady = false;
+            state.isGo = true;
+            state.startTime = performance.now();
+            setDisplayState('go', '🟢 クリック！！！', '今すぐタップ / クリック！');
+            messageEl.textContent = '💥 今だ！';
+            state.timerId = null;
+        }, delay);
+    }
+
+    // --- クリック（タップ）された時の処理 ---
+    function handleClick() {
+        // ゲーム終了後は無視
+        if (state.isFinished) return;
+
+        // --- 緑（クリック可）の場合 ---
+        if (state.isGo) {
+            const endTime = performance.now();
+            const reactionTime = Math.round(endTime - state.startTime);
+            // 結果を保存（5回まで）
+            state.results.push(reactionTime);
+            state.currentTrial = state.results.length;
+            // 表示更新
+            setDisplayState('result', `✅ ${reactionTime} ms`, `#${state.currentTrial} / 5 回目`);
+            messageEl.textContent = `👍 ${reactionTime} ms ！`;
+            updateUI();
+
+            // タイマーをクリア（念のため）
+            if (state.timerId) {
+                clearTimeout(state.timerId);
+                state.timerId = null;
+            }
+            state.isGo = false;
+            state.isReady = false;
+
+            // 5回終了チェック
+            if (state.results.length >= 5) {
+                finishGame();
+                return;
             }
 
-            // 出現位置: 左半分に集中（OKIAIMX風）
-            const margin = t.radius + 10;
-            const maxX = canvas.width * 0.55; // 左側55%の範囲
-            const minX = margin;
-            const minY = margin;
-            const maxY = canvas.height - margin;
-
-            t.x = Math.random() * (maxX - minX) + minX;
-            t.y = Math.random() * (maxY - minY) + minY;
-            t.radius = cfg.targetRadius;
-            t.isVisible = true;
-
-            // 一定時間で自動的に消える（置きエイムの練習）
-            t.disappearTimer = setTimeout(() => {
-                if (game.status === 'playing') {
-                    t.isVisible = false;
-                    // ミスではないが、次のターゲットを出す
-                    scheduleNextSpawn();
+            // 次の試行へ（少し間を置いてから）
+            startBtn.disabled = true;
+            setDisplayState('waiting', '次の準備中...', '少し待ってください');
+            setTimeout(() => {
+                if (!state.isFinished && state.results.length < 5) {
+                    startReadySequence();
                 }
-            }, cfg.visibleTime);
+            }, 800);
+            return;
         }
 
-        // --- 次の出現をスケジュール ---
-        function scheduleNextSpawn() {
-            if (game.status !== 'playing') return;
-            if (game.spawnTimeout) clearTimeout(game.spawnTimeout);
-
-            const cfg = getConfig();
-            // 出現間隔に少しランダム性を持たせる（ゲームを単調にしない）
-            const variance = cfg.spawnInterval * 0.3;
-            const delay = cfg.spawnInterval + (Math.random() * variance * 2 - variance);
-            game.spawnTimeout = setTimeout(() => {
-                spawnTarget();
-            }, Math.max(200, delay));
+        // --- 赤（準備中）でクリックされた場合：ミス ---
+        if (state.isReady) {
+            handleMistake();
+            return;
         }
 
-        // --- タイマー更新 ---
-        function updateTimer() {
-            if (game.status !== 'playing') return;
-            game.timeLeft -= 1;
-            timerSpan.textContent = game.timeLeft;
+        // --- それ以外（待機中や結果表示後など） ---
+        if (!state.isWaiting && !state.isReady && !state.isGo && !state.isFinished) {
+            messageEl.textContent = '👆 スタートボタンから始めてください';
+        }
+    }
 
-            if (game.timeLeft <= 0) {
-                gameOver();
+    // --- ゲーム終了（5回完了） ---
+    function finishGame() {
+        state.isFinished = true;
+        state.isGo = false;
+        state.isReady = false;
+        if (state.timerId) {
+            clearTimeout(state.timerId);
+            state.timerId = null;
+        }
+        const avg = Math.round(state.results.reduce((a, b) => a + b, 0) / state.results.length);
+        setDisplayState('result', '🏁 測定完了！', `5回の平均: ${avg} ms`);
+        messageEl.textContent = `🎉 平均 ${avg} ms ！ お疲れ様でした`;
+        startBtn.textContent = '🔄 もう一度やる';
+        startBtn.disabled = false;
+        updateUI();
+    }
+
+    // --- スタートボタンの動作 ---
+    function onStart() {
+        // ゲームが終了していたらリセット
+        if (state.isFinished) {
+            resetGame();
+            // リセット後にすぐ開始するために、再度スタート処理
+            setTimeout(() => onStart(), 100);
+            return;
+        }
+        // すでに進行中（waiting / ready / go）なら無視
+        if (state.isWaiting || state.isReady || state.isGo) return;
+
+        // 初回スタートまたは再開
+        if (state.results.length === 0) {
+            // 完全新規
+            resetGame();
+        }
+        // ただし、すでに一部結果がある場合は続行（再スタートはリセットされるが、上記で回避）
+        // 安全のため、resultsが0でなければリセット
+        if (state.results.length > 0 && !state.isFinished) {
+            // 途中再開は許可しない（一旦リセット）
+            resetGame();
+        }
+
+        // スタート！
+        state.isWaiting = true;
+        startBtn.disabled = true;
+        setDisplayState('waiting', '⏳ 待機中', '準備しています...');
+        messageEl.textContent = '';
+        // 少し遅延してから ready シーケンス開始
+        setTimeout(() => {
+            if (!state.isFinished) {
+                startReadySequence();
             }
-        }
+        }, 600);
+    }
 
-        // --- ゲームオーバー ---
-        function gameOver() {
-            if (game.status === 'gameover') return;
-            game.status = 'gameover';
-            if (game.timerInterval) clearInterval(game.timerInterval);
-            if (game.spawnTimeout) clearTimeout(game.spawnTimeout);
-            if (game.target.disappearTimer) clearTimeout(game.target.disappearTimer);
-            game.target.isVisible = false;
+    // --- イベント登録 ---
+    // クリックは displayArea 全体で受け付ける（タップしやすい）
+    displayArea.addEventListener('click', handleClick);
+    // ボタンは別途
+    startBtn.addEventListener('click', onStart);
 
-            messageEl.textContent = `⏰ ゲーム終了！ スコア: ${game.score}  👏 もう一度挑戦！`;
-            startBtn.textContent = '🔄 もう一度プレイ';
-        }
+    // --- 初期化 ---
+    resetGame();
 
-        // --- ゲーム開始 ---
-        function startGame() {
-            // 前回のタイマー類を完全にクリア
-            if (game.timerInterval) clearInterval(game.timerInterval);
-            if (game.spawnTimeout) clearTimeout(game.spawnTimeout);
-            if (game.target.disappearTimer) clearTimeout(game.target.disappearTimer);
-
-            const cfg = getConfig();
-            game.status = 'playing';
-            game.score = 0;
-            game.timeLeft = cfg.gameTime;
-            game.target.isVisible = false;
-            game.target.radius = cfg.targetRadius;
-
-            scoreSpan.textContent = '0';
-            timerSpan.textContent = game.timeLeft;
-            startBtn.textContent = '⏳ プレイ中...';
-            messageEl.textContent = '🎯 ターゲットをクリック！';
-
-            // 最初のターゲットをすぐに表示
-            spawnTarget();
-
-            // タイマースタート
-            game.timerInterval = setInterval(updateTimer, 1000);
-        }
-
-        // --- ヒット処理 ---
-        function handleHit(mouseX, mouseY) {
-            if (game.status !== 'playing') return;
-            const t = game.target;
-            if (!t.isVisible) return;
-
-            // 距離判定 (円と点の当たり判定)
-            const dx = mouseX - t.x;
-            const dy = mouseY - t.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            if (dist <= t.radius) {
-                // ヒット！
-                game.score += 1;
-                scoreSpan.textContent = game.score;
-                t.isVisible = false;
-                if (t.disappearTimer) {
-                    clearTimeout(t.disappearTimer);
-                    t.disappearTimer = null;
-                }
-                // ヒットしたら次のターゲットをすぐに出現（気持ちいい挙動）
-                scheduleNextSpawn();
-                messageEl.textContent = '💥 ヒット！ +1';
+    // --- キーボードでもクリックできるように（スペースキー） ---
+    document.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Space') {
+            e.preventDefault();
+            // ボタンが有効ならクリック扱い、または表示エリアをクリック扱い
+            if (!startBtn.disabled) {
+                onStart();
             } else {
-                // クリックミス（ペナルティなし、ただしフィードバック）
-                messageEl.textContent = '❌ はずれ... 照準を合わせて！';
+                handleClick();
             }
         }
+    });
 
-        // --- 描画ループ (requestAnimationFrame) ---
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // 1. 背景のガイド線 (左エリアを視覚化)
-            ctx.strokeStyle = '#2a3344';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([5, 10]);
-            ctx.beginPath();
-            ctx.moveTo(canvas.width * 0.55, 0);
-            ctx.lineTo(canvas.width * 0.55, canvas.height);
-            ctx.stroke();
-            ctx.setLineDash([]); // リセット
-
-            // 2. 中央の照準 (クロスヘア)
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            ctx.strokeStyle = '#88ccff';
-            ctx.lineWidth = 2;
-            const size = 20;
-            const gap = 8;
-            // 上下左右の線
-            ctx.beginPath();
-            ctx.moveTo(cx - size, cy); ctx.lineTo(cx - gap, cy);
-            ctx.moveTo(cx + gap, cy); ctx.lineTo(cx + size, cy);
-            ctx.moveTo(cx, cy - size); ctx.lineTo(cx, cy - gap);
-            ctx.moveTo(cx, cy + gap); ctx.lineTo(cx, cy + size);
-            ctx.stroke();
-            // 中心ドット
-            ctx.beginPath();
-            ctx.arc(cx, cy, 2, 0, Math.PI * 2);
-            ctx.fillStyle = '#88ccff';
-            ctx.fill();
-
-            // 3. ターゲット（敵）
-            const t = game.target;
-            if (t.isVisible) {
-                // 光るエフェクト
-                const grad = ctx.createRadialGradient(t.x - 5, t.y - 5, 2, t.x, t.y, t.radius + 6);
-                grad.addColorStop(0, '#ff4d4d');
-                grad.addColorStop(0.7, '#cc1111');
-                grad.addColorStop(1, '#550000');
-                ctx.shadowColor = '#ff0000';
-                ctx.shadowBlur = 25;
-
-                ctx.beginPath();
-                ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
-                ctx.fillStyle = grad;
-                ctx.fill();
-                // 枠線
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = '#ff8888';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-
-                // ターゲットの中央に×マーク（見やすく）
-                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-                ctx.lineWidth = 2;
-                const s = t.radius * 0.4;
-                ctx.beginPath();
-                ctx.moveTo(t.x - s, t.y - s);
-                ctx.lineTo(t.x + s, t.y + s);
-                ctx.moveTo(t.x + s, t.y - s);
-                ctx.lineTo(t.x - s, t.y + s);
-                ctx.stroke();
-            }
-
-            // 4. ゲームオーバー時の暗幕
-            if (game.status === 'gameover') {
-                ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 40px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
-                ctx.font = '24px sans-serif';
-                ctx.fillStyle = '#ffd966';
-                ctx.fillText(`最終スコア: ${game.score}`, canvas.width/2, canvas.height/2 + 40);
-            }
-
-            requestAnimationFrame(draw);
-        }
-
-        // --- クリックイベント (キャンバス) ---
-        canvas.addEventListener('click', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;   // canvas物理サイズと表示サイズの比
-            const scaleY = canvas.height / rect.height;
-            const mouseX = (e.clientX - rect.left) * scaleX;
-            const mouseY = (e.clientY - rect.top) * scaleY;
-
-            // キャンバス範囲内のみ処理
-            if (mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) {
-                handleHit(mouseX, mouseY);
-            }
-        });
-
-        // --- スタートボタン ---
-        startBtn.addEventListener('click', () => {
-            // ゲームオーバー中でもリスタートできる
-            startGame();
-        });
-
-        // --- モード切り替え ---
-        modeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (game.status === 'playing') {
-                    if (!confirm('ゲームをリセットしてモードを切り替えますか？')) return;
-                }
-                // アクティブ表示更新
-                modeBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentMode = btn.dataset.mode;
-                messageEl.textContent = `🔄 モード: ${MODES[currentMode].label} に切り替えました`;
-                // ゲームをアイドル状態にリセット（起動中のタイマーを停止）
-                if (game.timerInterval) clearInterval(game.timerInterval);
-                if (game.spawnTimeout) clearTimeout(game.spawnTimeout);
-                if (game.target.disappearTimer) clearTimeout(game.target.disappearTimer);
-                game.status = 'idle';
-                game.target.isVisible = false;
-                startBtn.textContent = '▶ ゲームスタート';
-                // スコアとタイマーをリセット（モードの初期値に合わせる）
-                const cfg = getConfig();
-                game.score = 0;
-                game.timeLeft = cfg.gameTime;
-                scoreSpan.textContent = '0';
-                timerSpan.textContent = cfg.gameTime;
-            });
-        });
-
-        // --- 初期描画開始 & 初期設定 ---
-        draw();
-        // 初期表示用にタイマーとスコアをモードに合わせる
-        const initCfg = getConfig();
-        game.timeLeft = initCfg.gameTime;
-        timerSpan.textContent = initCfg.gameTime;
-        messageEl.textContent = '👆 スタートしてターゲットを撃ってね！';
-    </script>
+    console.log('🧠 反射神経測定ゲーム ロード完了！');
+</script>
 </body>
 </html>
