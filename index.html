@@ -2,478 +2,140 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>反射神経測定（5回平均）</title>
-    <style>
-        /* ===== デザイン ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
-        body {
-            background: #0b0e14;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: white;
-        }
-        #app {
-            background: #1a1f2b;
-            padding: 30px 35px 35px 35px;
-            border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
-            text-align: center;
-            border: 1px solid #2f3747;
-            max-width: 600px;
-            width: 100%;
-        }
-        h1 {
-            font-size: 30px;
-            letter-spacing: 2px;
-            color: #b7c9e2;
-            margin-bottom: 8px;
-        }
-        .sub {
-            color: #8896b0;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        /* メイン表示エリ */
-        #displayArea {
-            background: #0f131c;
-            border-radius: 16px;
-            padding: 40px 20px;
-            margin-bottom: 20px;
-            border: 2px solid #2a3242;
-            transition: background-color 0.1s;
-            min-height: 160px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        #displayArea .status {
-            font-size: 28px;
-            font-weight: bold;
-        }
-        #displayArea .detail {
-            font-size: 18px;
-            color: #b0c0d8;
-            margin-top: 6px;
-        }
-        /* 状態に合わせた色（JSで切り替え） */
-        #displayArea.waiting {
-            background: #1e2636;
-            border-color: #3a455a;
-        }
-        #displayArea.ready {
-            background: #4a1a1a;
-            border-color: #aa3333;
-        }
-        #displayArea.go {
-            background: #1a4a2a;
-            border-color: #33aa55;
-        }
-        #displayArea.result {
-            background: #1a1f2b;
-            border-color: #3b5998;
-        }
-
-        /* 回数・結果リスト */
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            background: #0f131c;
-            padding: 10px 18px;
-            border-radius: 40px;
-            margin-bottom: 14px;
-            font-weight: bold;
-            border: 1px solid #2a3242;
-        }
-        .info-row span {
-            color: #ffd966;
-            font-size: 20px;
-        }
-        #resultList {
-            text-align: left;
-            background: #0f131c;
-            border-radius: 12px;
-            padding: 12px 18px;
-            margin: 10px 0 16px 0;
-            border: 1px solid #2a3242;
-            max-height: 120px;
-            overflow-y: auto;
-            font-size: 15px;
-            color: #b7c9e2;
-        }
-        #resultList .entry {
-            display: flex;
-            justify-content: space-between;
-            padding: 3px 0;
-            border-bottom: 1px solid #1e2636;
-        }
-        #resultList .entry:last-child {
-            border-bottom: none;
-        }
-        #averageDisplay {
-            font-size: 22px;
-            font-weight: bold;
-            color: #7fc7ff;
-            margin: 10px 0 16px 0;
-        }
-        .action-btn {
-            background: #2f8f4b;
-            border: none;
-            color: white;
-            font-size: 22px;
-            font-weight: bold;
-            padding: 14px 40px;
-            border-radius: 60px;
-            cursor: pointer;
-            transition: 0.2s;
-            letter-spacing: 2px;
-            box-shadow: 0 5px 0 #1a4a2a;
-            border-bottom: 2px solid #4cdb7a;
-            width: 100%;
-        }
-        .action-btn:hover {
-            background: #3ba85a;
-            transform: scale(1.02);
-        }
-        .action-btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 1px 0 #1a4a2a;
-        }
-        .action-btn:disabled {
-            opacity: 0.5;
-            transform: none;
-            box-shadow: 0 5px 0 #1a4a2a;
-            cursor: not-allowed;
-        }
-        #message {
-            margin-top: 12px;
-            color: #ff8080;
-            font-weight: bold;
-            min-height: 24px;
-        }
-        @media (max-width: 500px) {
-            #app { padding: 20px; }
-            #displayArea .status { font-size: 22px; }
-        }
-    </style>
+    <title>反射神経測定（超シンプル）</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="app">
+
     <h1>⚡ 反射神経テスト</h1>
-    <div class="sub">5回の平均反応時間を測定</div>
+    <p style="color:#666;">緑になったらクリック（タップ）</p>
 
-    <!-- 表示エリア -->
-    <div id="displayArea" class="waiting">
-        <div class="status" id="statusText">準備完了</div>
-        <div class="detail" id="detailText">スタートを押してください</div>
+    <!-- ★ このボックスをクリックして反応する ★ -->
+    <div id="box" class="waiting">
+        <div id="mainText">👆 準備完了</div>
+        <div id="sub">「スタート」を押してください</div>
     </div>
 
-    <!-- 回数・経過 -->
-    <div class="info-row">
-        <div>📊 試行 <span id="trialCount">0</span> / 5</div>
-        <div>⏱ 最後の結果 <span id="lastResult">--</span> ms</div>
-    </div>
+    <div id="result"></div>
 
-    <!-- 結果リスト -->
-    <div id="resultList">
-        <div style="color:#8896b0; text-align:center; padding:6px;">結果がここに表示されます</div>
-    </div>
+    <button id="startBtn">▶ スタート</button>
+    <div id="msg"></div>
 
-    <!-- 平均 -->
-    <div id="averageDisplay">平均: -- ms</div>
+    <p style="color:#aaa; font-size:14px; margin-top:30px;">（赤のうちに押すとミス → やり直し）</p>
 
-    <!-- スタートボタン -->
-    <button class="action-btn" id="startBtn">▶ スタート</button>
-    <div id="message"></div>
-</div>
+    <script>
+        // ============================================================
+        //  超シンプル反射神経測定（1回のみ）
+        // ============================================================
 
-<script>
-    // ============================================================
-    //  JavaScript: 反射神経測定の全ロジック
-    // ============================================================
+        const box = document.getElementById('box');
+        const mainText = document.getElementById('mainText');
+        const sub = document.getElementById('sub');
+        const result = document.getElementById('result');
+        const startBtn = document.getElementById('startBtn');
+        const msg = document.getElementById('msg');
 
-    // --- DOM 参照 ---
-    const displayArea = document.getElementById('displayArea');
-    const statusText = document.getElementById('statusText');
-    const detailText = document.getElementById('detailText');
-    const trialCountSpan = document.getElementById('trialCount');
-    const lastResultSpan = document.getElementById('lastResult');
-    const resultListEl = document.getElementById('resultList');
-    const averageDisplay = document.getElementById('averageDisplay');
-    const startBtn = document.getElementById('startBtn');
-    const messageEl = document.getElementById('message');
+        let state = {
+            status: 'waiting',   // waiting | ready | go | done
+            timerId: null,
+            startTime: 0,
+        };
 
-    // --- ゲーム状態 ---
-    const state = {
-        // 測定データ
-        results: [],           // 各回の反応時間 (ms)
-        currentTrial: 0,       // 0〜4 (5回)
-        // 状態フラグ
-        isWaiting: false,      // スタート待機 or 再試行待機
-        isReady: false,        // 赤（準備中）クリック禁止
-        isGo: false,           // 緑（クリック可）
-        isFinished: false,     // 5回終了
-        // タイマー関連
-        timerId: null,
-        startTime: 0,          // 緑になった瞬間の時刻 (performance.now)
-        // ペナルティ（ミス回数）
-        mistakes: 0,
-    };
-
-    // --- 補助関数 ---
-    function updateUI() {
-        trialCountSpan.textContent = state.results.length;
-        if (state.results.length > 0) {
-            lastResultSpan.textContent = state.results[state.results.length - 1];
-        } else {
-            lastResultSpan.textContent = '--';
-        }
-        // 結果リストの更新
-        renderResultList();
-        // 平均の更新
-        updateAverage();
-    }
-
-    function renderResultList() {
-        if (state.results.length === 0) {
-            resultListEl.innerHTML = `<div style="color:#8896b0; text-align:center; padding:6px;">結果がここに表示されます</div>`;
-            return;
-        }
-        let html = '';
-        state.results.forEach((ms, index) => {
-            const label = index + 1;
-            html += `<div class="entry"><span>#${label}</span><span>${ms} ms</span></div>`;
-        });
-        resultListEl.innerHTML = html;
-        // スクロールを最新に
-        resultListEl.scrollTop = resultListEl.scrollHeight;
-    }
-
-    function updateAverage() {
-        if (state.results.length === 0) {
-            averageDisplay.textContent = '平均: -- ms';
-            return;
-        }
-        const sum = state.results.reduce((a, b) => a + b, 0);
-        const avg = Math.round(sum / state.results.length);
-        averageDisplay.textContent = `平均: ${avg} ms`;
-    }
-
-    // --- 状態のリセット（再スタート用） ---
-    function resetGame() {
-        // タイマーをクリア
-        if (state.timerId) {
-            clearTimeout(state.timerId);
-            state.timerId = null;
-        }
-        state.results = [];
-        state.currentTrial = 0;
-        state.mistakes = 0;
-        state.isFinished = false;
-        state.isWaiting = false;
-        state.isReady = false;
-        state.isGo = false;
-        setDisplayState('waiting', '準備完了', 'スタートを押してください');
-        startBtn.textContent = '▶ スタート';
-        startBtn.disabled = false;
-        messageEl.textContent = '';
-        updateUI();
-    }
-
-    // --- 表示エリアの状態切り替え ---
-    function setDisplayState(mode, status, detail = '') {
-        // mode: 'waiting', 'ready', 'go', 'result'
-        displayArea.className = mode;
-        statusText.textContent = status;
-        detailText.textContent = detail;
-    }
-
-    // --- ミス（早押し）処理 ---
-    function handleMistake() {
-        if (state.isFinished) return;
-        state.mistakes++;
-        messageEl.textContent = `⚠️ まだ赤です！ クリックは緑になってから (ミス ${state.mistakes}回)`;
-        // ミスしたらその回は無効にして再試行（同じ試行回数をもう一度）
-        // 再試行のために ready 状態に戻す（もう一度同じ待機時間からやり直し）
-        if (state.timerId) {
-            clearTimeout(state.timerId);
-            state.timerId = null;
-        }
-        state.isReady = false;
-        state.isGo = false;
-        // 少し待ってから再スタート（準備中→赤）
-        setDisplayState('waiting', '再試行', 'もう一度待機します...');
-        startBtn.disabled = true;
-        setTimeout(() => {
-            if (!state.isFinished && state.results.length < 5) {
-                startReadySequence();
-            }
-        }, 800);
-    }
-
-    // --- 準備シーケンス（赤→緑） ---
-    function startReadySequence() {
-        if (state.isFinished) return;
-        // 赤表示（準備中）
-        state.isReady = true;
-        state.isGo = false;
-        setDisplayState('ready', '🔴 準備中...', '緑になるのを待ってください');
-        startBtn.disabled = true;
-        messageEl.textContent = '';
-
-        // ランダムな待機時間 (1〜5秒)
-        const delay = Math.random() * 4000 + 1000; // 1000〜5000ms
-        state.timerId = setTimeout(() => {
-            // 緑に切り替え
-            state.isReady = false;
-            state.isGo = true;
-            state.startTime = performance.now();
-            setDisplayState('go', '🟢 クリック！！！', '今すぐタップ / クリック！');
-            messageEl.textContent = '💥 今だ！';
-            state.timerId = null;
-        }, delay);
-    }
-
-    // --- クリック（タップ）された時の処理 ---
-    function handleClick() {
-        // ゲーム終了後は無視
-        if (state.isFinished) return;
-
-        // --- 緑（クリック可）の場合 ---
-        if (state.isGo) {
-            const endTime = performance.now();
-            const reactionTime = Math.round(endTime - state.startTime);
-            // 結果を保存（5回まで）
-            state.results.push(reactionTime);
-            state.currentTrial = state.results.length;
-            // 表示更新
-            setDisplayState('result', `✅ ${reactionTime} ms`, `#${state.currentTrial} / 5 回目`);
-            messageEl.textContent = `👍 ${reactionTime} ms ！`;
-            updateUI();
-
-            // タイマーをクリア（念のため）
+        function clearTimer() {
             if (state.timerId) {
                 clearTimeout(state.timerId);
                 state.timerId = null;
             }
-            state.isGo = false;
-            state.isReady = false;
+        }
 
-            // 5回終了チェック
-            if (state.results.length >= 5) {
-                finishGame();
+        function setDisplay(status, main, subText = '') {
+            box.className = status;
+            mainText.textContent = main;
+            sub.textContent = subText;
+        }
+
+        function resetToWaiting() {
+            clearTimer();
+            state.status = 'waiting';
+            state.startTime = 0;
+            setDisplay('waiting', '👆 準備完了', '「スタート」を押してください');
+            result.textContent = '';
+            startBtn.textContent = '▶ スタート';
+            msg.textContent = '';
+        }
+
+        function onStart() {
+            resetToWaiting();
+
+            state.status = 'ready';
+            setDisplay('ready', '🔴 待ってください...', '緑になるのを待ってね');
+            startBtn.disabled = true;
+            msg.textContent = '';
+
+            // 1～5秒ランダム
+            const delay = Math.floor(Math.random() * 4000) + 1000;
+
+            state.timerId = setTimeout(() => {
+                state.status = 'go';
+                state.startTime = performance.now();
+                setDisplay('go', '🟢 クリック！！！', '今すぐ！');
+                msg.textContent = '💥 今だ！';
+                startBtn.disabled = true;
+                state.timerId = null;
+            }, delay);
+        }
+
+        function onBoxClick() {
+            // --- GO（緑）: 成功！ ---
+            if (state.status === 'go') {
+                const endTime = performance.now();
+                const ms = Math.round(endTime - state.startTime);
+
+                state.status = 'done';
+                setDisplay('done', '✅ 測定完了', `${ms} ミリ秒`);
+                result.textContent = `⏱ 反射神経: ${ms} ms`;
+                msg.textContent = '🎉 終了！';
+                startBtn.textContent = '🔄 もう一度';
+                startBtn.disabled = false;
+                clearTimer();
                 return;
             }
 
-            // 次の試行へ（少し間を置いてから）
-            startBtn.disabled = true;
-            setDisplayState('waiting', '次の準備中...', '少し待ってください');
-            setTimeout(() => {
-                if (!state.isFinished && state.results.length < 5) {
-                    startReadySequence();
+            // --- READY（赤）: ミス！ ---
+            if (state.status === 'ready') {
+                msg.textContent = '⚠️ まだ赤です！ 緑になってからクリック。';
+                clearTimer();
+                resetToWaiting();
+                startBtn.disabled = false;
+                msg.textContent = '❌ 早すぎました。もう一度スタートから。';
+                return;
+            }
+
+            // --- それ以外 ---
+            if (state.status === 'waiting' || state.status === 'done') {
+                msg.textContent = '👆 先に「スタート」ボタンを押してね。';
+            }
+        }
+
+        // イベント登録
+        startBtn.addEventListener('click', onStart);
+        box.addEventListener('click', onBoxClick);
+
+        // スペースキーでも操作可能
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Space') {
+                e.preventDefault();
+                if (!startBtn.disabled) {
+                    onStart();
+                } else {
+                    onBoxClick();
                 }
-            }, 800);
-            return;
-        }
-
-        // --- 赤（準備中）でクリックされた場合：ミス ---
-        if (state.isReady) {
-            handleMistake();
-            return;
-        }
-
-        // --- それ以外（待機中や結果表示後など） ---
-        if (!state.isWaiting && !state.isReady && !state.isGo && !state.isFinished) {
-            messageEl.textContent = '👆 スタートボタンから始めてください';
-        }
-    }
-
-    // --- ゲーム終了（5回完了） ---
-    function finishGame() {
-        state.isFinished = true;
-        state.isGo = false;
-        state.isReady = false;
-        if (state.timerId) {
-            clearTimeout(state.timerId);
-            state.timerId = null;
-        }
-        const avg = Math.round(state.results.reduce((a, b) => a + b, 0) / state.results.length);
-        setDisplayState('result', '🏁 測定完了！', `5回の平均: ${avg} ms`);
-        messageEl.textContent = `🎉 平均 ${avg} ms ！ お疲れ様でした`;
-        startBtn.textContent = '🔄 もう一度やる';
-        startBtn.disabled = false;
-        updateUI();
-    }
-
-    // --- スタートボタンの動作 ---
-    function onStart() {
-        // ゲームが終了していたらリセット
-        if (state.isFinished) {
-            resetGame();
-            // リセット後にすぐ開始するために、再度スタート処理
-            setTimeout(() => onStart(), 100);
-            return;
-        }
-        // すでに進行中（waiting / ready / go）なら無視
-        if (state.isWaiting || state.isReady || state.isGo) return;
-
-        // 初回スタートまたは再開
-        if (state.results.length === 0) {
-            // 完全新規
-            resetGame();
-        }
-        // ただし、すでに一部結果がある場合は続行（再スタートはリセットされるが、上記で回避）
-        // 安全のため、resultsが0でなければリセット
-        if (state.results.length > 0 && !state.isFinished) {
-            // 途中再開は許可しない（一旦リセット）
-            resetGame();
-        }
-
-        // スタート！
-        state.isWaiting = true;
-        startBtn.disabled = true;
-        setDisplayState('waiting', '⏳ 待機中', '準備しています...');
-        messageEl.textContent = '';
-        // 少し遅延してから ready シーケンス開始
-        setTimeout(() => {
-            if (!state.isFinished) {
-                startReadySequence();
             }
-        }, 600);
-    }
+        });
 
-    // --- イベント登録 ---
-    // クリックは displayArea 全体で受け付ける（タップしやすい）
-    displayArea.addEventListener('click', handleClick);
-    // ボタンは別途
-    startBtn.addEventListener('click', onStart);
-
-    // --- 初期化 ---
-    resetGame();
-
-    // --- キーボードでもクリックできるように（スペースキー） ---
-    document.addEventListener('keydown', (e) => {
-        if (e.key === ' ' || e.key === 'Space') {
-            e.preventDefault();
-            // ボタンが有効ならクリック扱い、または表示エリアをクリック扱い
-            if (!startBtn.disabled) {
-                onStart();
-            } else {
-                handleClick();
-            }
-        }
-    });
-
-    console.log('🧠 反射神経測定ゲーム ロード完了！');
-</script>
+        // 初期化
+        resetToWaiting();
+        console.log('✅ 超シンプル反射神経テスト 準備完了');
+    </script>
 </body>
 </html>
