@@ -1,77 +1,52 @@
-/* --------------------
-        全体
--------------------- */
-
-:root {
-  --theme-color: #FF4C9E;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html, body {
-  width: 100%;
-  height: 100%;
-}
-
+/* 必要最低限の余白とフォント設定だけ */
 body {
-  margin: 0;
-  padding: 30px;
-  color: #333;
+    font-family: sans-serif;
+    text-align: center;
+    padding-top: 60px;
 }
-
-/* --------------------
-        見出し
--------------------- */
-
-h1, h2, h3 {
-  color: var(--theme-color);
-  border-bottom: dashed 0.1em var(--theme-color);
+#box {
+    font-size: 40px;
+    font-weight: bold;
+    padding: 40px 20px;
+    margin: 20px auto;
+    max-width: 400px;
+    border: 3px solid #888;
+    cursor: pointer;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }
-
-/* --------------------
-        リンク
--------------------- */
-
-a {
-  color: var(--theme-color);
-  text-decoration: none;
+/* 状態ごとの色（背景は白のまま、文字色と枠だけ変える） */
+.waiting { color: #333; border-color: #888; }
+.ready   { color: #cc0000; border-color: #cc0000; } /* 赤 */
+.go      { color: #008800; border-color: #008800; } /* 緑 */
+.done    { color: #0033aa; border-color: #0033aa; }
+#sub {
+    font-size: 18px;
+    font-weight: normal;
+    color: #666;
+    margin-top: 8px;
 }
-
-/* --------------------
-        リスト
--------------------- */
-
-ul {
-  list-style: none;
+#result {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 16px 0;
+    min-height: 40px;
+    color: #0033aa;
 }
-li:before {
-  content: "★";
-  color: var(--theme-color);
+button {
+    font-size: 22px;
+    padding: 10px 40px;
+    cursor: pointer;
+    border: 2px solid #333;
+    background: #eee;
+    font-weight: bold;
 }
-
-/* --------------------
-          表
--------------------- */
-
-table {
-  border-spacing: 0;
-  border-collapse: collapse;
-  border: solid 1px #f0f0f0;
-  min-width: 70%;
-}
-tr {
-  background-color: #fff;
-}
-tr:nth-child(2n) {
-  background-color: #f9f9f9;
-}
-th {
-  background: var(--theme-color);
-  color: #fff;
-}
-th, td {
-  border: solid 1px #f0f0f0;
-  padding: 0.5rem;
+button:hover { background: #ddd; }
+#msg {
+    margin-top: 12px;
+    color: #cc0000;
+    min-height: 24px;
 }
