@@ -1,69 +1,467 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>muiのポートフォリオ</title>
-    <link href="style.css" rel="stylesheet">
-  </head>
-  <body>
-    <h1>Miru</h1>
-      <img src="unknown_2023.07.08-02.29 (1).png">
-    
-    <h2>About</h2>
-    <p>
-      ゲームをすることが好きです。<br>
-    </p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>エイム練習ゲーム (OKIAIMX風)</title>
+    <style>
+        /* ===== スタイリング ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background: #0b0e14;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+        }
+        #gameWrapper {
+            background: #1a1f2b;
+            padding: 25px 30px 30px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            text-align: center;
+            border: 1px solid #2f3747;
+        }
+        h1 {
+            font-size: 28px;
+            letter-spacing: 3px;
+            color: #b7c9e2;
+            text-shadow: 0 2px 0 #0a0c10;
+            margin-bottom: 10px;
+        }
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f131c;
+            padding: 10px 20px;
+            border-radius: 40px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            border: 1px solid #2a3242;
+        }
+        .info-panel span {
+            color: #ffd966;
+            font-size: 22px;
+            min-width: 60px;
+        }
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        .mode-btn {
+            background: #252d3d;
+            border: none;
+            color: #8896b0;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+        .mode-btn:hover {
+            background: #2f3a4e;
+            color: white;
+        }
+        .mode-btn.active {
+            background: #3b5998;
+            color: white;
+            border-color: #5f7fc7;
+            box-shadow: 0 0 10px #3b599880;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: #141a24;
+            border-radius: 12px;
+            border: 2px solid #2e384b;
+            cursor: crosshair;
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            aspect-ratio: 800 / 450;
+        }
+        .action-btn {
+            margin-top: 18px;
+            background: #2f8f4b;
+            border: none;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            padding: 12px 40px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 0 #1a4a2a;
+            border-bottom: 2px solid #4cdb7a;
+        }
+        .action-btn:hover {
+            background: #3ba85a;
+            transform: scale(1.02);
+        }
+        .action-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #1a4a2a;
+        }
+        #message {
+            margin-top: 10px;
+            height: 24px;
+            color: #ff8080;
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            #gameWrapper { padding: 15px; }
+            h1 { font-size: 20px; }
+            .info-panel span { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameWrapper">
+        <h1>🎯 エイム練習</h1>
 
-    <h3>Profile</h3>
-    <ul>
-      <li>Miru(ハンドルネーム)</li>
-      <li>北海道出身</li>
-      <li>電気工事全般が得意なのとゲームが得意</li>
-    </ul>
+        <!-- スコア＆タイマー -->
+        <div class="info-panel">
+            <div>🎯 スコア <span id="scoreDisplay">0</span></div>
+            <div>⏱ 残り <span id="timerDisplay">30</span>s</div>
+        </div>
 
-    <h3>Skills</h3>
-    <table>
-      <tr>
-        <th>OS</th>
-        <td>Windows</td>
-      </tr>
-      <tr>
-        <th>Engine, Frameworks</th>
-        <td>jsなど</td>
-      </tr>
-      <tr>
-        <th>Tool, MiddleWare</th>
-        <td>Git, githubなど</td>
-      </tr>
-      <tr>
-        <th>資格・免許</th>
-        <td>電気工事士一種、2種、運転免許証(MT)</td>
-      </tr>
-    </table>
+        <!-- 難易度ボタン -->
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="easy">🍀 かんたん</button>
+            <button class="mode-btn" data-mode="normal">⚡ ふつう</button>
+            <button class="mode-btn" data-mode="hard">🔥 むずかしい</button>
+        </div>
 
-    <h3>Works</h3>
-    <p>ここ最近していたこと</p>
-    <ul>
-      <li>新幹線の電気関連で仕事をしていました。</a></li>
-  
+        <!-- ゲーム描画エリア -->
+        <canvas id="gameCanvas" width="800" height="450"></canvas>
 
+        <!-- スタート / リスタート -->
+        <button class="action-btn" id="startBtn">▶ ゲームスタート</button>
+        <div id="message">👆 敵が消える前にクリック！</div>
+    </div>
 
-    </ul>
+    <script>
+        // ============================================================
+        //  JavaScript: ゲームのすべてのロジック
+        // ============================================================
 
-    <h3>Contact</h3>
-    <p>muityan57@gmail.com</p>
-    <ul>
-    </ul>
+        // --- 要素取得 ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreSpan = document.getElementById('scoreDisplay');
+        const timerSpan = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const messageEl = document.getElementById('message');
+        const modeBtns = document.querySelectorAll('.mode-btn');
 
-    <h3>History</h3>
-    <p>2021年から2025年まで新幹線関連の仕事をしていました。</p>
+        // --- ゲーム設定 (モード別) ---
+        const MODES = {
+            easy:   { spawnInterval: 1200, visibleTime: 1200, gameTime: 30, targetRadius: 28, label: 'かんたん' },
+            normal: { spawnInterval: 900,  visibleTime: 900,  gameTime: 25, targetRadius: 22, label: 'ふつう' },
+            hard:   { spawnInterval: 600,  visibleTime: 600,  gameTime: 20, targetRadius: 16, label: 'むずかしい' }
+        };
+        let currentMode = 'easy';
 
+        // --- ゲーム状態 ---
+        let game = {
+            status: 'idle',        // 'idle' , 'playing' , 'gameover'
+            score: 0,
+            timeLeft: 30,
+            timerInterval: null,
+            spawnTimeout: null,
+            // ターゲット
+            target: {
+                x: 0,
+                y: 0,
+                radius: 28,
+                isVisible: false,
+                disappearTimer: null
+            }
+        };
 
-    <h3>好きな曲</h3>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/ruaGEP7BIBU?si=9AVkGmjrQbPMf9Ep" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        // --- 補助関数 ---
+        function getConfig() {
+            return MODES[currentMode];
+        }
 
-        <h3>Open Processing</h3>
-    <iframe src="https://openprocessing.org/sketch/2962469/embed/" width="400" height="400"></iframe>
-  </body>
+        // --- ターゲットを出現させる ---
+        function spawnTarget() {
+            if (game.status !== 'playing') return;
+
+            const cfg = getConfig();
+            const t = game.target;
+
+            // 既に表示中なら一旦クリア
+            if (t.disappearTimer) {
+                clearTimeout(t.disappearTimer);
+                t.disappearTimer = null;
+            }
+
+            // 出現位置: 左半分に集中（OKIAIMX風）
+            const margin = t.radius + 10;
+            const maxX = canvas.width * 0.55; // 左側55%の範囲
+            const minX = margin;
+            const minY = margin;
+            const maxY = canvas.height - margin;
+
+            t.x = Math.random() * (maxX - minX) + minX;
+            t.y = Math.random() * (maxY - minY) + minY;
+            t.radius = cfg.targetRadius;
+            t.isVisible = true;
+
+            // 一定時間で自動的に消える（置きエイムの練習）
+            t.disappearTimer = setTimeout(() => {
+                if (game.status === 'playing') {
+                    t.isVisible = false;
+                    // ミスではないが、次のターゲットを出す
+                    scheduleNextSpawn();
+                }
+            }, cfg.visibleTime);
+        }
+
+        // --- 次の出現をスケジュール ---
+        function scheduleNextSpawn() {
+            if (game.status !== 'playing') return;
+            if (game.spawnTimeout) clearTimeout(game.spawnTimeout);
+
+            const cfg = getConfig();
+            // 出現間隔に少しランダム性を持たせる（ゲームを単調にしない）
+            const variance = cfg.spawnInterval * 0.3;
+            const delay = cfg.spawnInterval + (Math.random() * variance * 2 - variance);
+            game.spawnTimeout = setTimeout(() => {
+                spawnTarget();
+            }, Math.max(200, delay));
+        }
+
+        // --- タイマー更新 ---
+        function updateTimer() {
+            if (game.status !== 'playing') return;
+            game.timeLeft -= 1;
+            timerSpan.textContent = game.timeLeft;
+
+            if (game.timeLeft <= 0) {
+                gameOver();
+            }
+        }
+
+        // --- ゲームオーバー ---
+        function gameOver() {
+            if (game.status === 'gameover') return;
+            game.status = 'gameover';
+            if (game.timerInterval) clearInterval(game.timerInterval);
+            if (game.spawnTimeout) clearTimeout(game.spawnTimeout);
+            if (game.target.disappearTimer) clearTimeout(game.target.disappearTimer);
+            game.target.isVisible = false;
+
+            messageEl.textContent = `⏰ ゲーム終了！ スコア: ${game.score}  👏 もう一度挑戦！`;
+            startBtn.textContent = '🔄 もう一度プレイ';
+        }
+
+        // --- ゲーム開始 ---
+        function startGame() {
+            // 前回のタイマー類を完全にクリア
+            if (game.timerInterval) clearInterval(game.timerInterval);
+            if (game.spawnTimeout) clearTimeout(game.spawnTimeout);
+            if (game.target.disappearTimer) clearTimeout(game.target.disappearTimer);
+
+            const cfg = getConfig();
+            game.status = 'playing';
+            game.score = 0;
+            game.timeLeft = cfg.gameTime;
+            game.target.isVisible = false;
+            game.target.radius = cfg.targetRadius;
+
+            scoreSpan.textContent = '0';
+            timerSpan.textContent = game.timeLeft;
+            startBtn.textContent = '⏳ プレイ中...';
+            messageEl.textContent = '🎯 ターゲットをクリック！';
+
+            // 最初のターゲットをすぐに表示
+            spawnTarget();
+
+            // タイマースタート
+            game.timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // --- ヒット処理 ---
+        function handleHit(mouseX, mouseY) {
+            if (game.status !== 'playing') return;
+            const t = game.target;
+            if (!t.isVisible) return;
+
+            // 距離判定 (円と点の当たり判定)
+            const dx = mouseX - t.x;
+            const dy = mouseY - t.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist <= t.radius) {
+                // ヒット！
+                game.score += 1;
+                scoreSpan.textContent = game.score;
+                t.isVisible = false;
+                if (t.disappearTimer) {
+                    clearTimeout(t.disappearTimer);
+                    t.disappearTimer = null;
+                }
+                // ヒットしたら次のターゲットをすぐに出現（気持ちいい挙動）
+                scheduleNextSpawn();
+                messageEl.textContent = '💥 ヒット！ +1';
+            } else {
+                // クリックミス（ペナルティなし、ただしフィードバック）
+                messageEl.textContent = '❌ はずれ... 照準を合わせて！';
+            }
+        }
+
+        // --- 描画ループ (requestAnimationFrame) ---
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. 背景のガイド線 (左エリアを視覚化)
+            ctx.strokeStyle = '#2a3344';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 10]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width * 0.55, 0);
+            ctx.lineTo(canvas.width * 0.55, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]); // リセット
+
+            // 2. 中央の照準 (クロスヘア)
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            ctx.strokeStyle = '#88ccff';
+            ctx.lineWidth = 2;
+            const size = 20;
+            const gap = 8;
+            // 上下左右の線
+            ctx.beginPath();
+            ctx.moveTo(cx - size, cy); ctx.lineTo(cx - gap, cy);
+            ctx.moveTo(cx + gap, cy); ctx.lineTo(cx + size, cy);
+            ctx.moveTo(cx, cy - size); ctx.lineTo(cx, cy - gap);
+            ctx.moveTo(cx, cy + gap); ctx.lineTo(cx, cy + size);
+            ctx.stroke();
+            // 中心ドット
+            ctx.beginPath();
+            ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#88ccff';
+            ctx.fill();
+
+            // 3. ターゲット（敵）
+            const t = game.target;
+            if (t.isVisible) {
+                // 光るエフェクト
+                const grad = ctx.createRadialGradient(t.x - 5, t.y - 5, 2, t.x, t.y, t.radius + 6);
+                grad.addColorStop(0, '#ff4d4d');
+                grad.addColorStop(0.7, '#cc1111');
+                grad.addColorStop(1, '#550000');
+                ctx.shadowColor = '#ff0000';
+                ctx.shadowBlur = 25;
+
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
+                ctx.fill();
+                // 枠線
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#ff8888';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // ターゲットの中央に×マーク（見やすく）
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 2;
+                const s = t.radius * 0.4;
+                ctx.beginPath();
+                ctx.moveTo(t.x - s, t.y - s);
+                ctx.lineTo(t.x + s, t.y + s);
+                ctx.moveTo(t.x + s, t.y - s);
+                ctx.lineTo(t.x - s, t.y + s);
+                ctx.stroke();
+            }
+
+            // 4. ゲームオーバー時の暗幕
+            if (game.status === 'gameover') {
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 40px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 20);
+                ctx.font = '24px sans-serif';
+                ctx.fillStyle = '#ffd966';
+                ctx.fillText(`最終スコア: ${game.score}`, canvas.width/2, canvas.height/2 + 40);
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        // --- クリックイベント (キャンバス) ---
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;   // canvas物理サイズと表示サイズの比
+            const scaleY = canvas.height / rect.height;
+            const mouseX = (e.clientX - rect.left) * scaleX;
+            const mouseY = (e.clientY - rect.top) * scaleY;
+
+            // キャンバス範囲内のみ処理
+            if (mouseX >= 0 && mouseX <= canvas.width && mouseY >= 0 && mouseY <= canvas.height) {
+                handleHit(mouseX, mouseY);
+            }
+        });
+
+        // --- スタートボタン ---
+        startBtn.addEventListener('click', () => {
+            // ゲームオーバー中でもリスタートできる
+            startGame();
+        });
+
+        // --- モード切り替え ---
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (game.status === 'playing') {
+                    if (!confirm('ゲームをリセットしてモードを切り替えますか？')) return;
+                }
+                // アクティブ表示更新
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                messageEl.textContent = `🔄 モード: ${MODES[currentMode].label} に切り替えました`;
+                // ゲームをアイドル状態にリセット（起動中のタイマーを停止）
+                if (game.timerInterval) clearInterval(game.timerInterval);
+                if (game.spawnTimeout) clearTimeout(game.spawnTimeout);
+                if (game.target.disappearTimer) clearTimeout(game.target.disappearTimer);
+                game.status = 'idle';
+                game.target.isVisible = false;
+                startBtn.textContent = '▶ ゲームスタート';
+                // スコアとタイマーをリセット（モードの初期値に合わせる）
+                const cfg = getConfig();
+                game.score = 0;
+                game.timeLeft = cfg.gameTime;
+                scoreSpan.textContent = '0';
+                timerSpan.textContent = cfg.gameTime;
+            });
+        });
+
+        // --- 初期描画開始 & 初期設定 ---
+        draw();
+        // 初期表示用にタイマーとスコアをモードに合わせる
+        const initCfg = getConfig();
+        game.timeLeft = initCfg.gameTime;
+        timerSpan.textContent = initCfg.gameTime;
+        messageEl.textContent = '👆 スタートしてターゲットを撃ってね！';
+    </script>
+</body>
 </html>
