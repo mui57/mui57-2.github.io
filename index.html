@@ -7,135 +7,90 @@
 </head>
 <body>
 
-    <h1>⚡ 反射神経テスト</h1>
-    <p style="color:#666;">緑になったらクリック（タップ）</p>
-
-    <!-- ★ このボックスをクリックして反応する ★ -->
-    <div id="box" class="waiting">
-        <div id="mainText">👆 準備完了</div>
-        <div id="sub">「スタート」を押してください</div>
-    </div>
+    <div id="box" class="waiting">スタートを押す</div>
 
     <div id="result"></div>
 
     <button id="startBtn">▶ スタート</button>
-    <div id="msg"></div>
-
-    <p style="color:#aaa; font-size:14px; margin-top:30px;">（赤のうちに押すとミス → やり直し）</p>
 
     <script>
         // ============================================================
-        //  超シンプル反射神経測定（1回のみ）
+        //  反射神経測定（スタート＋結果のみ）
         // ============================================================
 
         const box = document.getElementById('box');
-        const mainText = document.getElementById('mainText');
-        const sub = document.getElementById('sub');
         const result = document.getElementById('result');
         const startBtn = document.getElementById('startBtn');
-        const msg = document.getElementById('msg');
 
-        let state = {
-            status: 'waiting',   // waiting | ready | go | done
-            timerId: null,
-            startTime: 0,
-        };
+        let status = 'waiting';   // waiting | ready | go | done
+        let timerId = null;
+        let startTime = 0;
 
         function clearTimer() {
-            if (state.timerId) {
-                clearTimeout(state.timerId);
-                state.timerId = null;
-            }
+            if (timerId) { clearTimeout(timerId); timerId = null; }
         }
 
-        function setDisplay(status, main, subText = '') {
-            box.className = status;
-            mainText.textContent = main;
-            sub.textContent = subText;
+        function setDisplay(state) {
+            box.className = state;
+            if (state === 'waiting') box.textContent = 'スタートを押す';
+            else if (state === 'ready') box.textContent = '🔴';
+            else if (state === 'go') box.textContent = '🟢 クリック！';
+            else if (state === 'done') box.textContent = '✅ 完了';
         }
 
         function resetToWaiting() {
             clearTimer();
-            state.status = 'waiting';
-            state.startTime = 0;
-            setDisplay('waiting', '👆 準備完了', '「スタート」を押してください');
+            status = 'waiting';
+            startTime = 0;
+            setDisplay('waiting');
             result.textContent = '';
             startBtn.textContent = '▶ スタート';
-            msg.textContent = '';
         }
 
         function onStart() {
             resetToWaiting();
 
-            state.status = 'ready';
-            setDisplay('ready', '🔴 待ってください...', '緑になるのを待ってね');
+            status = 'ready';
+            setDisplay('ready');
             startBtn.disabled = true;
-            msg.textContent = '';
 
-            // 1～5秒ランダム
             const delay = Math.floor(Math.random() * 4000) + 1000;
 
-            state.timerId = setTimeout(() => {
-                state.status = 'go';
-                state.startTime = performance.now();
-                setDisplay('go', '🟢 クリック！！！', '今すぐ！');
-                msg.textContent = '💥 今だ！';
-                startBtn.disabled = true;
-                state.timerId = null;
+            timerId = setTimeout(() => {
+                status = 'go';
+                startTime = performance.now();
+                setDisplay('go');
+                timerId = null;
             }, delay);
         }
 
         function onBoxClick() {
-            // --- GO（緑）: 成功！ ---
-            if (state.status === 'go') {
+            if (status === 'go') {
                 const endTime = performance.now();
-                const ms = Math.round(endTime - state.startTime);
+                const ms = Math.round(endTime - startTime);
 
-                state.status = 'done';
-                setDisplay('done', '✅ 測定完了', `${ms} ミリ秒`);
-                result.textContent = `⏱ 反射神経: ${ms} ms`;
-                msg.textContent = '🎉 終了！';
+                status = 'done';
+                setDisplay('done');
+                result.textContent = `${ms} ms`;
                 startBtn.textContent = '🔄 もう一度';
                 startBtn.disabled = false;
                 clearTimer();
-                return;
-            }
-
-            // --- READY（赤）: ミス！ ---
-            if (state.status === 'ready') {
-                msg.textContent = '⚠️ まだ赤です！ 緑になってからクリック。';
-                clearTimer();
-                resetToWaiting();
-                startBtn.disabled = false;
-                msg.textContent = '❌ 早すぎました。もう一度スタートから。';
-                return;
-            }
-
-            // --- それ以外 ---
-            if (state.status === 'waiting' || state.status === 'done') {
-                msg.textContent = '👆 先に「スタート」ボタンを押してね。';
             }
         }
 
-        // イベント登録
         startBtn.addEventListener('click', onStart);
         box.addEventListener('click', onBoxClick);
 
-        // スペースキーでも操作可能
+        // スペースキー対応
         document.addEventListener('keydown', (e) => {
             if (e.key === ' ' || e.key === 'Space') {
                 e.preventDefault();
-                if (!startBtn.disabled) {
-                    onStart();
-                } else {
-                    onBoxClick();
-                }
+                if (!startBtn.disabled) onStart();
+                else onBoxClick();
             }
         });
 
-        // 初期化
         resetToWaiting();
-        console.log('✅ 超シンプル反射神経テスト 準備完了');
     </script>
 </body>
 </html>
